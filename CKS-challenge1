@@ -53,21 +53,6 @@ spec:
 
 ---
 apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: alpha-pvc
-  namespace: alpha
-spec:
-  accessModes:
-    - ReadWriteMany
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 1Gi
-  storageClassName: local-storage
-  
----
-apiVersion: v1
 kind: Service
 metadata:
   name: alpha-svc
