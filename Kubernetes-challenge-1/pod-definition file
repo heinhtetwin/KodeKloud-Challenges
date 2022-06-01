@@ -1,0 +1,67 @@
+apiVersion: v1
+
+kind: Pod
+
+metadata:
+
+  name: jekyll
+
+  namespace: development
+
+  labels:
+
+    run: jekyll
+
+spec:
+
+  volumes:
+
+    - name: site
+
+      persistentVolumeClaim:
+
+        claimName: jekyll-site
+
+  initContainers:
+
+    - name: copy-jekyll-site
+
+      image: kodekloud/jekyll
+
+      imagePullPolicy: IfNotPresent
+
+      command: ["jekyll", "new", "/site"]
+
+      volumeMounts:
+
+        - name: site
+
+          mountPath: /site
+
+  containers:
+
+    - name: jekyll
+
+      image: kodekloud/jekyll-serve
+
+      volumeMounts:
+
+        - name: site
+
+          mountPath: /site
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jekyll
+  namespace: development
+spec:
+  type: NodePort
+  selector:
+    run: jekyll
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 4000
+      nodePort: 30097
