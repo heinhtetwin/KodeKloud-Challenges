@@ -35,6 +35,9 @@ spec:
       containers:
       - name: db-container
         image: postgres:9.4
+        env:
+        - name: POSTGRES_PASSWORD
+          value: "password"
         volumeMounts:
         - name: db-data
           mountPath: /var/lib/postgresql/data
