@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-cluster
+spec:
+  selector:
+    matchLabels:
+      app: redis-cluster # has to match .spec.template.metadata.labels
+  serviceName: "nginx"
+  replicas: 6 
+  template:
+    metadata:
+      labels:
+        app: redis-cluster # has to match .spec.selector.matchLabels
+    spec:
+      volumes:
+      - name: conf
+        configMap:
+            name: "redis-cluster-configmap"
+            defaultMode: 0755
+      containers:
+      - name: redis
+        image: redis:5.0.1-alpine
+        command:
+        - /conf/update-node.sh
+        - redis-server
+        - /conf/redis.conf
+        env:
+        - name: POD_IP
+          valueFrom:
+             fieldRef:
+               fieldPath: "status.podIP"
+        ports:
+        - containerPort: 6379
+          name: client
+        - containerPort: 16379
+          name: gossip
+        volumeMounts:
+        - name: data
+          mountPath: /data
+          readOnly: false
+        - name: conf
+          mountPath: /conf
+          readOnly: false
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "redis-storage"
+      resources:
+        requests:
+          storage: 1Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-cluster-service
+spec:
+  selector:
+    app: redis-cluster
+  ports:
+  - name: client
+    port: 6379
+    targetPort: 6379
+  - name: gossip
+    port: 16379
+    targetPort: 16379
